@@ -2,6 +2,7 @@
 AI:Action Item
 AI\&T:Assembly, Integration and Test
 AURA:Association of Universities for Research in Astronomy
+AT:Auxiliary Telescope 
 BAC:Budget At Completion
 BOE:Basis Of Estimate
 MC:Monte-Carlo (simulation/process)
@@ -23,4 +24,5 @@ PSTN:Project Science Technical Note
 TSS:Telescope and Site Software
 LOVE:LSST Operations Visualization Environment
 SAL:Services Access Layer
-ATCS:Auxiliary Telescope Control Sys stem
+ATCS:Auxiliary Telescope Control Sysstem
+TCS:Telescope Control Sysstem
