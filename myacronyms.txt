@@ -22,7 +22,8 @@ EIE:European Industrial Engineering  - Italian engineering company (Dome)
 LDM:LSST Data Management (document handle)
 PSTN:Project Science Technical Note
 TSS:Telescope and Site Software
+LTS:LSS Telescope and Site (Document handle)
 LOVE:LSST Operations Visualization Environment
 SAL:Services Access Layer
-ATCS:Auxiliary Telescope Control Sysstem
-TCS:Telescope Control Sysstem
+ATCS:Auxiliary Telescope Control System
+TCS:Telescope Control System
