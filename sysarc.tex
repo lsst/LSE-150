@@ -62,7 +62,7 @@ Overall, the system architecture can be divided into three main namespaces; Obse
 \subsection{SalObj - Python and scripting }\label{sect:salobj}
 SalObj is a Python library provides a pythonic and object-oriented interface to create CSCs and Scripts that can be executed by the script queue component (see Sect.~\ref{sect:scriptq}). The library defines two sets of base classes that are mirror to each other, Remote and Controller. A Remote will send commands to and receive telemetry and events from a specific component whereas a Controller will receive commands and publish telemetry and events. In this framework, a CSC is a specialized Controller that is configure to perform some basic actions by default. A high level diagram is provided in \figref{fig:salobj}.
 
-Internally, SalObj uses the python library asyncio\footnote{\url{https://docs.python.org/3/library/asyncio.html}} to handle the inherently asynchronous nature of the SAL messaging system. 
+Internally, SalObj uses the python library \asyncio\footnote{\url{https://docs.python.org/3/library/asyncio.html}} to handle the inherently asynchronous nature of the SAL messaging system. 
 
 \begin{figure}
 \begin{center}
@@ -71,15 +71,21 @@ Internally, SalObj uses the python library asyncio\footnote{\url{https://docs.py
 \end{center}
 \end{figure}
 
-\subsection{ScriptQueue} \label{sect:scriptq}
+\subsection{Hardware interface components}\label{sect:hardware_csc}
+Components that talk directly to hardware.
+
+\subsection{Pure software components}\label{sect:software_csc}
+Components that are purely software.
+
+\subsubsection{The ScriptQueue component} \label{sect:scriptq}
 There are a number of different ways users can interact with components in the LSST system. For instance, one could easily use the SAL generated API in any of the supported languages to send commands directly to a single or multiple components. It is also possible to use SalObj Remotes to write Python scripts that would command different components to accomplish a specified task. Not to mention that LOVE itself provides a customizable interface for users to interact with components. 
 
-Nevertheless, during commissioning and operations the LSST system will require a high degree of coordination between different crews (different daytime and nighttime shifts, for instance), not to mention the increasing number of available components and level of complexity as the system ramps up. In order to manager those issues, the LSST control system contains a specialized script queueing component, a.k.a. the ScriptQueue\footnote{\url{https://github.com/lsst-ts/ts_scriptqueue}}.
+During commissioning and operations the LSST system will require a high degree of coordination between different crews (different daytime and nighttime shifts, for instance), not to mention the increasing number of available components and level of complexity as the system ramps up. In order to manager those issues, the LSST control system contains a specialized script queueing component, a.k.a. the ScriptQueue\footnote{\url{https://github.com/lsst-ts/ts_scriptqueue}}.
 
-The ScriptQueue defines an interface for developing scripts in general, and provides a basic class that can be used to develop Python scripts. As Python programs, these scripts have access to all Python functionality, both from the native Python 3 language and through imported modules (including asyncio to manage concurrent activities or libraries from the DM stack). In particular, a Script has access to all the system components using SalObj Remotes (\secref{sect:salobj}) . Although Python is the only language officially supported, scripts can be written in any SAL-supported language. As long as they follow the interface defined by the ScriptQueue component, it should be possible to execute them. 
+The ScriptQueue defines an interface for developing scripts in general, and provides a basic class that can be used to develop Python scripts. As Python programs, these scripts have access to all Python functionality, both from the native Python 3 language and through imported modules (including \asyncio~to manage concurrent activities or libraries from the DM stack). In particular, a Script has access to all the system components using SalObj Remotes (\secref{sect:salobj}) . Although Python is the only language officially supported, scripts can be written in any SAL-supported language. As long as they follow the interface defined by the ScriptQueue component, it should be possible to execute them. 
 
-\subsection{Observatory Control System } \label{sect:ocs}
-In such an environment it is not immediately clear that a traditional hierarchical design is necessary or desirable. A completely flat architecture initially seems completely workable and certainly sufficient during in AIT and early commissioning. For example, consider a Script which commands and sequences the telescope subsystems to move to the next field to be observed, take an exposure, and read out that exposure. The Script can directly control each of those subsystems and maintain control of the sequencing using asyncio. Furthermore, the complexity of the Script can be managed through normal modular programming techniques, in which subsystem functionality is implemented through Python objects imported in modules.
+\subsubsection{Control Systems} \label{sect:ocs}
+In such an environment it is not immediately clear that a traditional hierarchical design is necessary or desirable. A completely flat architecture initially seems completely workable and certainly sufficient during in AIT and early commissioning. For example, consider a Script which commands and sequences the telescope subsystems to move to the next field to be observed, take an exposure, and read out that exposure. The Script can directly control each of those subsystems and maintain control of the sequencing using \asyncio. Furthermore, the complexity of the Script can be managed through normal modular programming techniques, in which subsystem functionality is implemented through Python objects imported in modules.
 
 Though we could have a flat system based on ScriptQueue (\secref{sect:scriptq})
 there are two compelling reason to retain at least a top level OCS which has
@@ -108,3 +114,56 @@ a Script to execute “Emergency Close”, but to use it would require that any 
 Script be aborted, and the “.
 
 It should be noted this could also be achieved by an "Emergency Close" script inserted on top of the ScriptQueue and an abort on the current running script (if there is one) - the ScriptQueue supports this.  So the OCS remains a low priority to be developed during commissioning as we understand the needs better.
+
+\subsubsection{The Watcher}\label{sect:watcher}
+The watcher watches... 
+
+
+\subsection{Configuration Management}\label{sect:config}
+During commissioning and operations, LSST will have a large number of running software components under the purview of DM, Camera, and TSS. In general, the behavior of each of these components is modifiable through configuration information which is read in during startup of the component, or possibly changed while the component is running. Careful management of this configuration information is crucial to reliable functioning of the Observatory, and to the analysis of its data products.
+
+In this context, git is the solution adopted to store and manage different sets of configurations and different versions of configurations. Git is already a standard in industry as a software management tool and has becoming increasingly used to manage general documents and files as well, not to mention that it is already readily available and broadly adopted by the project. Therefore, each component must establish a {\bf separate} git repository to store its configuration files. 
+
+These configuration repositories will be hosted on a configuration server at the summit so that, even if communication with the base or the internet is not available, components still maintain access to their configuration repositories. Different configuration sets (or labels) are stored in separate branches, and tags can be created to specify immutable sets. 
+
+Several options for configuration file format, and their associated software tools, have been considered. Each of the available options naturally has its strengths and weaknesses, and none stand out as being particularly useful for all LSST use cases (and/or available for all the project adopted programming languages).
+
+For components written in Python, \pexC~is the adopted solution. As an overview of \pexC, here are a few snippets from the library documentation:
+
+\begin{quotation}
+The \texttt{lsst.pex.config} module provides a configuration system for the LSST Science Pipelines.... Configurations are hierarchical trees of parameters used to control the execution of code.... Configurations are stored in instances of a "config" object, which are subclasses of the \texttt{Config} class. Different configuration sets are associated with different subclasses of \texttt{Config}. For example, in the task framework each task is associated with a specific \texttt{Config} subclass.... Configuration objects have \texttt{fields} that are discrete settings. These \texttt{fields} are attributes on config classes.
+\end{quotation}
+
+In the TSS context the "task" above becomes a "CSC". 
+
+\texttt{lsst.pex.config.Config} class has methods \texttt{save()} and \texttt{load()} which persist and restore class instances from files, which just contain Python code. Note that because these files are Python code, it is easy to include documentation within the files.
+
+The validation of a \texttt{Config} file is handled by the \texttt{\_\_init\_\_()} method of the \texttt{Config} subclass which can check, for example, whether parameter values comply with range limits, or whether all required parameters are specified.
+
+In this framework, the configuration schema (or definition) will be developed and stored in the CSC codebase repository (using \pexC). As already stated above, a separate repository hosts the actual configuration files which, in the case of \pexC, only contains changes to the default set of values.
+
+%The use of git in required to maintain history and recoverability of the changes to default configuration values and fulfill the requirements for a Configuration Management system for LSST. 
+
+%Nevertheless, since \texttt{pex\_config} is a Python library, it is not readily available for other languages used throughout the system. In order to overcome that issue, we provide a Configuration Adaptor that components written in other languages can connect through a regular TCP/IP connection.
+
+%
+
+%For CSCs that a not developed in Python, the Configuration Adaptor will be responsible for reading the \texttt{pex\_config} configuration definition and also 
+
+\subsection{Software Deployment}\label{sect:deploy}
+
+Use Puppet + Docker +  RPM + ...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
