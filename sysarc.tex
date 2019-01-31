@@ -72,10 +72,16 @@ Internally, SalObj uses the python library \asyncio\footnote{\url{https://docs.p
 \end{figure}
 
 \subsection{Hardware interface components}\label{sect:hardware_csc}
-Components that talk directly to hardware.
+Probably the most critical or sensitive components of the LSST system architecture are those that directly control hardware. Some of these components are going to be delivered directly by external vendors, such as those that will control the main telescope mount (MTMount) and the main telescope secondary mirror (MTM2). There are also those that are developed in house, e.g. the main telescope M1M3 (MTM1M3). 
+
+In some special cases it is highly desirable that the control software and hardware are part of an integrated system. For those systems, the components are developed either using the LabView component template, which is part of the LSST infrastructure or in C++ developed using the low level SAL API. 
+
+On most other cases, the hardware comes with a control software that can be easily interfaced by using broadly used standard protocols (such as TCP/IP or serial ports), and there is no special need for the component software to reside close to the low level hardware controller. In those cases, the components are written in Python using the SalObj library which is also part of the LSST infrastructure. By writing these components in Python we allow a high level of flexibility and maintainability of the software components and considerably decrease the development cycle. 
 
 \subsection{Pure software components}\label{sect:software_csc}
-Components that are purely software.
+In the LSST System Architecture there are a number of components that, even tough they do not control hardware directly, they dictate what hardware components are supposed to do. Some of these components are responsible for heavy computational routines, such as the Optical Feedback Control (MTOFC), which is responsible for applying corrections to both M1M3, M2 and hexapod components for the main telescope or even the Scheduler, which is responsible for processing the an entire set of observatory telemetry information and history of observations to compute an observing queue. 
+
+These pure software components are mostly written in Python using SalObj library. 
 
 \subsubsection{The ScriptQueue component} \label{sect:scriptq}
 There are a number of different ways users can interact with components in the LSST system. For instance, one could easily use the SAL generated API in any of the supported languages to send commands directly to a single or multiple components. It is also possible to use SalObj Remotes to write Python scripts that would command different components to accomplish a specified task. Not to mention that LOVE itself provides a customizable interface for users to interact with components. 
