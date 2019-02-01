@@ -183,11 +183,28 @@ In this framework, the configuration schema (or definition) will be developed an
 
 %For CSCs that a not developed in Python, the Configuration Adaptor will be responsible for reading the \texttt{pex\_config} configuration definition and also 
 
-\subsection{Software Deployment}\label{sect:deploy}
+\subsection{Software Deployment Strategy}\label{sect:deploy}
+SAL will be packed as RPMs...
 
-Use Puppet + Docker +  RPM + ...
+Those components that can be containerized will be packed as Docker containers + Docker hub server at the summit.
+
+What about those that can't? Examples? M1M3? Things that are done in LabView? What about CRIO? What about vendor supplied software?
+
+Puppet can deploy Docker containers. What about the others? 
+
+What about the EFD? 
+
+Use RPM + Docker + Puppet ...
+
+%The LSST Control Software deployment is based on puppet 
+
+%For most pure software components in the LSST architecture (Sect.~\ref{sect:software_csc}) the deployment strategy requirements are quite simple and follow industry standard procedures. 
+
+% has some very particular demands when it comes to deployment. 
 
 
+
+%What do to about CRIO deployment?
 
 
 
