@@ -81,7 +81,7 @@ On most other cases, the hardware comes with a control software that can be easi
 \subsection{Pure software components}\label{sect:software_csc}
 In the LSST System Architecture there are a number of components that, even tough they do not control hardware directly, they dictate what hardware components are supposed to do. Some of these components are responsible for heavy computational routines, such as the Optical Feedback Control (MTOFC), which is responsible for applying corrections to both M1M3, M2 and hexapod components for the main telescope or even the Scheduler, which is responsible for processing the an entire set of observatory telemetry information and history of observations to compute an observing queue. 
 
-These pure software components are mostly written in Python using SalObj library. 
+These pure software components are mostly written in Python using SalObj library. There are three special cases of these components that form the basis of the LSST System Architecture; the Script Queue (Sect.~\ref{sect:scriptq}), Control Systems (Sect.~\ref{sect:ocs}) and the Watcher (Sect.~\ref{sect:watcher}). Together, they provide the tools needed for integration, commissioning and operation of the observatory.  
 
 \subsubsection{The ScriptQueue component} \label{sect:scriptq}
 There are a number of different ways users can interact with components in the LSST system. For instance, one could easily use the SAL generated API in any of the supported languages to send commands directly to a single or multiple components. It is also possible to use SalObj Remotes to write Python scripts that would command different components to accomplish a specified task. Not to mention that LOVE itself provides a customizable interface for users to interact with components. 
@@ -91,39 +91,66 @@ During commissioning and operations the LSST system will require a high degree o
 The ScriptQueue defines an interface for developing scripts in general, and provides a basic class that can be used to develop Python scripts. As Python programs, these scripts have access to all Python functionality, both from the native Python 3 language and through imported modules (including \asyncio~to manage concurrent activities or libraries from the DM stack). In particular, a Script has access to all the system components using SalObj Remotes (\secref{sect:salobj}) . Although Python is the only language officially supported, scripts can be written in any SAL-supported language. As long as they follow the interface defined by the ScriptQueue component, it should be possible to execute them. 
 
 \subsubsection{Control Systems} \label{sect:ocs}
-In such an environment it is not immediately clear that a traditional hierarchical design is necessary or desirable. A completely flat architecture initially seems completely workable and certainly sufficient during in AIT and early commissioning. For example, consider a Script which commands and sequences the telescope subsystems to move to the next field to be observed, take an exposure, and read out that exposure. The Script can directly control each of those subsystems and maintain control of the sequencing using \asyncio. Furthermore, the complexity of the Script can be managed through normal modular programming techniques, in which subsystem functionality is implemented through Python objects imported in modules.
+In such an environment it is not immediately clear that a traditional hierarchical design is necessary or desirable. A completely flat architecture initially seems completely workable and certainly sufficient during AIT and early commissioning. For example, consider a Script which commands and sequences the telescope subsystems to move to the next field to be observed, take an exposure, and read out that exposure. The Script can directly control each of those subsystems and maintain control of the sequencing using \asyncio. Furthermore, the complexity of the Script can be managed through normal modular programming techniques, in which subsystem functionality is implemented through Python objects imported in modules.
 
-Though we could have a flat system based on ScriptQueue (\secref{sect:scriptq})
-there are two compelling reason to retain at least a top level OCS which has
-overall responsibility for all subsystems. The first reason is rooted in the limited lifetime of each
-Script, which has an execution thread that begins and ends over a duration short compared to
-the up time of the telescope system. When a Script is instantiated, it has no immediate
-knowledge of the state of the telescope system as a whole, or the state of individual
-subsystems. It needs such knowledge, because many actions, e.g. moving the telescope,
-require the telescope subsystems to be in particular states. The Script can of course assemble
-the required knowledge, by using SAL to obtain the state information of all relevant subsystems,
-but doing so imposes unnecessary startup overheads for Scripts. It is far more efficient, not to
-say reliable, for a single subsystem to be continuously responsible for maintaining knowledge of
-the overall state of the observatory (observatory states are discussed in more detail below)
+Though we could have a flat system based on ScriptQueue (\secref{sect:scriptq}) there are two compelling reason to retain at least a top level OCS which has overall responsibility for all subsystems. The first reason is rooted in the limited lifetime of each Script, which has an execution thread that begins and ends over a duration short compared to the up time of the telescope system. When a Script is instantiated, it has no immediate knowledge of the state of the telescope system as a whole, or the state of individual subsystems. It needs such knowledge, because many actions, e.g. moving the telescope, require the telescope subsystems to be in particular states. The Script can, of course, assemble the required knowledge, by using SAL to obtain the state information of all relevant subsystems, but doing so imposes unnecessary startup overheads for Scripts. It is far more efficient, not to say reliable, for a single subsystem to be continuously responsible for maintaining knowledge of the overall state of the observatory (observatory states are discussed in more detail below).
 
 The second, related, reason is that the operator needs:
 \begin{enumerate}
-\item to maintain continuous knowledge of
-the state of the observatory independent of Script execution, and
-\item  to be able to command the
-observatory to change its overall state.
+\item to maintain continuous knowledge of the state of the observatory independent of Script execution, and
+\item  to be able to command the observatory to change its overall state.
 \end{enumerate}
-An excellent example of the latter requirement is from
-the LOVE requirements document, \citeds{LTS-807}: “The LOVE shall provide a single control
-command labeled “Emergency Close” of the telescopes”. Certainly one could imagine creating
-a Script to execute “Emergency Close”, but to use it would require that any currently running
-Script be aborted, and the “.
+An excellent example of the latter requirement is from the LOVE requirements document, \citeds{LTS-807}:
 
-It should be noted this could also be achieved by an "Emergency Close" script inserted on top of the ScriptQueue and an abort on the current running script (if there is one) - the ScriptQueue supports this.  So the OCS remains a low priority to be developed during commissioning as we understand the needs better.
+\begin{quotation}
+{\bf Requirement ID:} LOVE-REQ-0078
+
+{\bf Requirement Title:} Emergency Close 
+
+{\bf Specification:} The LOVE {\bf shall} provide a single control command labeled "Emergency Close" of the telescopes. 
+\end{quotation}
+
+Certainly one could imagine creating a Script to execute Emergency Close, but to use it would require that any currently running Script be aborted, and the script to be placed on top of the queue which may create a dangerous overhead.
+
+By adding high level Control Systems that are responsible for monitoring the heath and state of a group of components, it is possible to increase overall system responsiveness, simplify script development cycle and so on. This is accomplished by the use of a Generic Control System (GCS) component.
+
+A GSC defines a namespace which contains a group of component to be supervised. The list of components that are part of a Control System group is a configurable parameter. The Control System component still operates normally, taking the appropriate actions, if one or more of the components in its group is missing, unresponsive or in a fault state. The Control System manages and oversee the state of each component in its group. 
+
+For each component, there are a set of basic actions that a Control System is capable of performing and it is possible to expand and customize these actions for a specific component (or group of components). An example of a default action is to bring components up to an enable state, configuring it in the process. The decision to bring a component up can be either following a request to use the component by an external agent or client (e.g. a script), or given some external constraint (e.g. the night is about to start so the Control System enables every component, or a subset of components, in its group).
+
+The ability to define customized actions is an important feature of Control System. It enables one to port actions that are developed inside scripts to control a group of components into a high level command that is performed by the Control System. Since the Control System monitors the state and health of the components inside its namespace and has readily access to the commands they accept, it is possible to execute these high level commands at a faster rate than that achieved from a script alone.
+
+Overall the combination of the ScriptQueue and GCS gives the LSST system a high level of flexibility, speed and reliability. 
+
+%Customization is specially important for handling fault states. It is very likely that the default behavior for when a component enters a fault state is for the Control System deny actions that involves the faulty component (note that alarm are handled by the Watcher, see Sect.~\ref{sect:watcher}). In some other cases, it may be possible to implement simple rules to deal with some kinds of fault states.
+
+%The ScriptQueue supports this. So the OCS remains a low priority to be developed during commissioning as we understand the needs better.
 
 \subsubsection{The Watcher}\label{sect:watcher}
-The watcher watches... 
+The Watcher is a component that monitors the other SAL components and output alarms in a standard way that LOVE can present to operators. The Watcher is designed in such a way that alarm rules are easy to write and easy to understand. The rules are likely to evolve rapidly during commissioning and slowly after that.
 
+Examples of alarms published by the Watcher are;
+%
+\begin{itemize}
+\item Dangerous weather, such as rain or high humidity.
+\item A SAL component is unavailable: not enabled or heartbeat is missing.
+\item Actuator malfunction, such as axis motors out of closed loop, filter changer stuck, an actuator hits a limit.
+\item CCD temperatures or pressures out of range.
+\end{itemize}
+
+A typical life cycle of an alarm:
+\begin{enumerate}
+\item Azimuth goes out of range so the controller halts motion. The Watcher reports this as an alarm with severity=serious. LOVE displays it.
+\item An operator acknowledges the alarm to the Watcher, but the axis is still out of range. The Watcher outputs a new version of the alarm that includes the information that the alarm has been acknowledged. LOVE displays the alert in a way that looks less urgent (e.g. is grayed out). The alarm has been acknowledged but the condition is still current.
+\item An operator fixes the problem and the controller reports this. The Watcher reports the alarm one last time with severity "OK". LOVE removes the alarm from the display.
+\end{enumerate}
+
+A typical life cycle of a transient alarm:
+\begin{enumerate}
+\item The azimuth drive temporarily draws too much current; the component reports this but manages to keep the axis moving (presumably with temporarily degraded accuracy). The Watcher reports this as an alarm with severity=serious. LOVE displays it.
+\item The drive current is within normal range again before an operator has time to acknowledge the alarm. The Watcher outputs a new version of the alarm that says the condition is now OK but the alarm has not yet been acknowledged (a "stale alarm"). LOVE still displays the alarm, but in different way to indicate that the problem is gone.
+\item An operator acknowledges the alarm to the Watcher. The Watcher outputs a new version of the alarm with severity "OK" and acknowledged=True. LOVE removes the alarm from the display.
+\end{enumerate}
 
 \subsection{Configuration Management}\label{sect:config}
 During commissioning and operations, LSST will have a large number of running software components under the purview of DM, Camera, and TSS. In general, the behavior of each of these components is modifiable through configuration information which is read in during startup of the component, or possibly changed while the component is running. Careful management of this configuration information is crucial to reliable functioning of the Observatory, and to the analysis of its data products.
