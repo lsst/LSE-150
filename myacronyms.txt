@@ -33,3 +33,5 @@ DMCS:Data Management Control System
 MT:Main Telescope
 DIMM:Differential Image Motion Monitor
 ID:Identifier
+IP:Internet Protocol
+C: Specific programming language (also called ANSI-C)
