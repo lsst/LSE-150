@@ -10,3 +10,5 @@ http
 p
 s
 A
+REQ
+OK
