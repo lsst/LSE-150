@@ -5,6 +5,9 @@ AURA:Association of Universities for Research in Astronomy
 AT:Auxiliary Telescope 
 BAC:Budget At Completion
 BOE:Basis Of Estimate
+CSC:Controlable SAL Component
+CRIO:Compact Reconfigurable Input/Output
+GCS:Generic Control System
 MC:Monte-Carlo (simulation/process)
 NCOA:National Center for Optical-Infrared Astronomy
 NCSA:National Center for Supercomputing Applications
@@ -24,6 +27,15 @@ PSTN:Project Science Technical Note
 TSS:Telescope and Site Software
 LTS:LSS Telescope and Site (Document handle)
 LOVE:LSST Operations Visualization Environment
+RPM:RPM Package Manager
 SAL:Services Access Layer
 ATCS:Auxiliary Telescope Control System
 TCS:Telescope Control System
+DMCS:Data Management Control System
+M1M3: Primary/Tertiary mirror
+M2:Secondary mirror
+MT:Main Telescope
+DIMM:Differential Image Motion Monitor
+ID:Identifier
+IP:Internet Protocol
+C: Specific programming language (also called ANSI-C)
