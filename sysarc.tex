@@ -10,9 +10,6 @@ The LSST System Architecture is comprised mainly of;
 \item Engineering and Facility Database (EFD).
 \item SAL-aware reactive components, a.k.a Commandable SAL Components (CSCs).
 \item LSST Operators Visualization Environment (LOVE).
-% \item Python SalObj\footnote{\url{https://github.com/lsst-ts/ts_salobj}} library.
-%\item LabView component template.
-% \item Script Queue  \footnote{\url{https://github.com/lsst-ts/ts_scriptqueue}}
 \end{itemize}
 
 \begin{figure}
@@ -31,17 +28,6 @@ CSCs are the main actors of the LSST system architecture. They are responsible f
 LOVE is responsible for capturing SAL messages and displaying them in a useful way for general users, providing some basic interface to query and analyze data from the EFD, an interface to issue pre-defined commands to a set of components and user interaction with the ScriptQueue (see Sect.~\ref{sect:scriptq}).
 
 The SAL processes XML based definitions of the Commands, Events, and Telemetry for each CSC. Using this information, it creates runtime objects which support the messaging required. These take the form of shared libraries (C++, Python, LabVIEW) or Jar archives (Java) which implement consistent namespaces and API's. Other assets such as Simulated data, Sql table definitions, and web based documentation, may also be generated. On top of these low level APIs, developers have access to two higher-level set of frameworks; Python SalObj\footnote{\url{https://github.com/lsst-ts/ts_salobj}} library and the LabVIEW component template. No higher level framework is supported for implementations in Java or C++.
-
-% a Python library (e.g. SalObj) or the LabView component template. There is no higher level support for implementation in Java or C++.
-
-% Each component of the system is and independent actor that reacts to data published to the middleware.
-
-%\begin{itemize}
-%\item Infrastructure and Middleware :
-%\item The Scheduler \footnote{\url{https://github.com/lsst-ts/ts_scheduler}}
-%\item Potentially an Auxiliary and Main Telescope Control System (ATCS and TCS)\footnote {The precise nature and need for these is unclear now so they have lower priority.}
-%\item Controllable SAL Components (CSCs) - every device and some pseudo devices, including the scheduler, are CSCs. Some are coordinating other CSCs, the full hierarchy is shown for AuxTel in \figref{fig:atcscs} and the Main Telescope in \figref{fig:mtcscs}
-%\end{itemize}
 
 Overall, the system architecture can be divided into three main namespaces; Observatory, Main Telescope (MT) and Auxiliary Telescope (AT). The Observatory is the highest level and encapsulates both the Main Telescope, Auxiliary Telescope and global components such as the weather station, DIMM, etc. The complete set of components that belong to each of these namespaces can be seen in Figs.~\ref{fig:ocs}, ~\ref{fig:atcscs} and \ref{fig:mtcscs}.
 
@@ -67,16 +53,9 @@ Overall, the system architecture can be divided into three main namespaces; Obse
 \end{figure}
 
 \subsection{SalObj - Python and scripting }\label{sect:salobj}
-SalObj is a Python library provides a pythonic and object-oriented interface to create CSCs and SAL Scripts that can be executed by the script queue component (see Sect.~\ref{sect:scriptq}). The library defines two sets of base classes that are mirror to each other, Remote and Controller. A Remote will send commands to and receive telemetry and events from a specific component whereas a Controller will receive commands and publish telemetry and events. In this framework, a CSC is a specialized Controller that is configured to perform some basic actions by default. %A high level diagram is provided in \figref{fig:salobj}.
+SalObj is a Python library provides a pythonic and object-oriented interface to create CSCs and SAL Scripts that can be executed by the script queue component (see Sect.~\ref{sect:scriptq}). The library defines two sets of base classes that are mirror to each other, Remote and Controller. A Remote will send commands to and receive telemetry and events from a specific component whereas a Controller will receive commands and publish telemetry and events. In this framework, a CSC is a specialized Controller that is configured to perform some basic actions by default. 
 
 Internally, SalObj uses the python library \asyncio\footnote{\url{https://docs.python.org/3/library/asyncio.html}} to handle the inherently asynchronous nature of the SAL messaging system.
-
-% \begin{figure}
-% \begin{center}
-% \includegraphics[width=0.9\textwidth]{SalobjClassDiag2}
-% \caption{SalObj python scheme for  CSCs\label{fig:salobj}}
-% \end{center}
-% \end{figure}
 
 \subsection{Hardware interface components}\label{sect:hardware_csc}
 Probably the most critical or sensitive components of the LSST system architecture are those that directly control hardware. Some of these components are going to be delivered directly by external vendors, such as those that will control the main telescope mount (MTMount) and the main telescope secondary mirror (MTM2). There are also those that are developed in house, e.g. the main telescope M1M3 (MTM1M3).
@@ -112,18 +91,6 @@ In the TSS context the "task" above becomes a "CSC".
 The validation of a \texttt{Config} file is handled by the \texttt{\_\_init\_\_()} method of the \texttt{Config} subclass which can check, for example, whether parameter values comply with range limits, or whether all required parameters are specified.
 
 In this framework, the configuration schema (or definition) will be developed and stored in the CSC codebase repository (using \pexC). As already stated above, a separate repository hosts the actual configuration files which, in the case of \pexC, only contains changes to the default set of values.}
-
-%The use of git in required to maintain history and recoverability of the changes to default configuration values and fulfill the requirements for a Configuration Management system for LSST.
-
-%Nevertheless, since \texttt{pex\_config} is a Python library, it is not readily available for other languages used throughout the system. In order to overcome that issue, we provide a Configuration Adaptor that components written in other languages can connect through a regular TCP/IP connection.
-
-%
-
-%For CSCs that a not developed in Python, the Configuration Adaptor will be responsible for reading the \texttt{pex\_config} configuration definition and also
-
-
-
-
 
 
 
