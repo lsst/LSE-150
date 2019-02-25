@@ -15,7 +15,7 @@ During commissioning and operations the LSST system will require a high degree o
 complexity as the system ramps up. In order to manager those issues, the LSST control system contains a specialized script 
 queuing component, a.k.a. the ScriptQueue\footnote{\url{https://github.com/lsst-ts/ts_scriptqueue}}.
 
-The ScriptQueue defines an interface for developing scripts in general, and provides BaseScript, a base class for Python SAL scripts. 
+The ScriptQueue defines BaseScript a Python base class which provides an interface for developing SAL scripts. 
 As Python programs, these scripts have access to all Python functionality, both from the native Python 3 language and through 
 imported modules (including \asyncio~to manage concurrent activities or libraries from the DM stack). In particular, a SAL Script 
 has access to all the system components using SalObj Remotes (\secref{sect:salobj}) . Although Python is the only language 
