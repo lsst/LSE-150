@@ -7,6 +7,7 @@ BAC:Budget At Completion
 BOE:Basis Of Estimate
 CSC:Controlable SAL Component
 CRIO:Compact Reconfigurable Input/Output
+CI:Continuous Integration
 GCS:Generic Control System
 MC:Monte-Carlo (simulation/process)
 NCOA:National Center for Optical-Infrared Astronomy
