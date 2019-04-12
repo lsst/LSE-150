@@ -58,7 +58,7 @@ Figs.~\ref{fig:ocs}, ~\ref{fig:atcscs} and \ref{fig:mtcscs}.
 \begin{figure}
 \begin{center}
 \includegraphics[width=0.9\textwidth]{Obs}
-\caption{Hi level observatory architecture with namespaces and observatory-wide CSCs. (preliminary)\label{fig:ocs}}
+\caption{High level observatory architecture with namespaces and observatory-wide CSCs. (preliminary)\label{fig:ocs}}
 \end{center}
 \end{figure}
 
@@ -71,7 +71,10 @@ Figs.~\ref{fig:ocs}, ~\ref{fig:atcscs} and \ref{fig:mtcscs}.
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=0.9\textwidth]{LSST}
+\includegraphics[width=0.9\textwidth]{MT_top}
+\includegraphics[width=0.9\textwidth]{MTTCS}
+\includegraphics[width=0.45\textwidth]{LSSTCamera}
+\includegraphics[width=0.45\textwidth]{CalCS}
 \caption{Complete set of MT CSCs (preliminary)\label{fig:mtcscs}}
 \end{center}
 \end{figure}
@@ -123,43 +126,23 @@ Camera, and TSS. In general, the behavior of each of these components is modifia
 is read in during startup of the component, or possibly changed while the component is running. Careful management of 
 this configuration information is crucial to reliable functioning of the Observatory, and to the analysis of its data products.
 
-In this context, git is the solution adopted to store and manage different sets of configurations and different versions of 
-configurations. Git is already a standard in industry as a software management tool and has becoming increasingly used 
-to manage general documents and files as well, not to mention that it is already readily available and broadly adopted by the 
-project. {\color{blue} Therefore, each component must be capable of handling a git-based configuration repository.
+There are basically two ways configurations are managed, using a configuration database or version management, for 
+ascii-file based configuration. Configuration databases can use any type of database technology as long as versioning 
+control is properly implemented and verified. 
 
+For file-based configuration, version control is done using git repositories
+Git is already a standard in industry as a software management tool and has becoming increasingly used 
+to manage general documents and files as well, not to mention that it is already readily available and broadly adopted by the 
+project. Therefore, each component must be capable of handling a git-based configuration repository.
 These configuration repositories will be hosted on a configuration server at the summit so that, even if communication with the 
-base or the internet is not available, components still maintain access to their configuration repositories. Different 
-configuration sets (or labels) are stored in separate branches, and tags can be created to specify immutable sets.
+base or the internet is not available, components still maintain access to their configuration repositories. 
 
 Several options for configuration file format, and their associated software tools, have been considered. Each of the 
 available options naturally has its strengths and weaknesses, and none stand out as being particularly useful for all LSST 
-use cases (and/or available for all the project adopted programming languages).
+use cases (and/or available for all the project adopted programming languages). The standard adopted for LSST 
+software components is YAML (\url{https://yaml.org}). If a specific component is developed in a language without support
+to YAML, a waver may be granted.
 
-For components written in Python, \pexC~is the adopted solution. As an overview of \pexC, here are a few snippets from 
-the library documentation:
-
-\begin{quotation}
-The \texttt{lsst.pex.config} module provides a configuration system for the LSST Science Pipelines.... Configurations are 
-hierarchical trees of parameters used to control the execution of code.... Configurations are stored in instances of a 
-"config" object, which are subclasses of the \texttt{Config} class. Different configuration sets are associated with different 
-subclasses of \texttt{Config}. For example, in the task framework each task is associated with a specific \texttt{Config} 
-subclass.... Configuration objects have \texttt{fields} that are discrete settings. These \texttt{fields} are attributes on 
-config classes.
-\end{quotation}
-
-In the TSS context the "task" above becomes a "CSC".
-
-\texttt{lsst.pex.config.Config} class has methods \texttt{save()} and \texttt{load()} which persist and restore class instances 
-from files, which just contain Python code. Note that because these files are Python code, it is easy to include documentation 
-within the files.
-
-The validation of a \texttt{Config} file is handled by the \texttt{\_\_init\_\_()} method of the \texttt{Config} subclass which can 
-check, for example, whether parameter values comply with range limits, or whether all required parameters are specified.
-
-In this framework, the configuration schema (or definition) will be developed and stored in the CSC codebase repository 
-(using \pexC). As already stated above, a separate repository hosts the actual configuration files which, in the case of 
-\pexC, only contains changes to the default set of values.} 
 
 
 
