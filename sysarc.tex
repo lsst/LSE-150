@@ -16,8 +16,8 @@ The LSST System Architecture is comprised mainly of;
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=0.8\textwidth]{arc}
-\caption{High Level Architecture Diagram. (To be replaced...)\label{fig:arc}}
+\includegraphics[width=\textwidth]{arc}
+\caption{High Level Architecture Diagram.\label{fig:arc}}
 \end{center}
 \end{figure}
 
@@ -52,32 +52,7 @@ is supported for implementations in Java or C++.
 
 Overall, the system architecture can be divided into three main namespaces; Observatory, Main Telescope (MT) and Auxiliary Telescope 
 (AT). The Observatory is the highest level and encapsulates both the Main Telescope, Auxiliary Telescope and global components such
-as the weather station, DIMM, etc. The complete set of components that belong to each of these namespaces can be seen in
-Figs.~\ref{fig:ocs}, ~\ref{fig:atcscs} and \ref{fig:mtcscs}.
-
-\begin{figure}
-\begin{center}
-\includegraphics[width=0.9\textwidth]{Obs}
-\caption{High level observatory architecture with namespaces and observatory-wide CSCs. (preliminary)\label{fig:ocs}}
-\end{center}
-\end{figure}
-
-\begin{figure}
-\begin{center}
-\includegraphics[width=0.9\textwidth]{AT}
-\caption{Complete set of AT CSCs (preliminary)\label{fig:atcscs}}
-\end{center}
-\end{figure}
-
-\begin{figure}
-\begin{center}
-\includegraphics[width=0.9\textwidth]{MT_top}
-\includegraphics[width=0.9\textwidth]{MTTCS}
-\includegraphics[width=0.45\textwidth]{LSSTCamera}
-\includegraphics[width=0.45\textwidth]{CalCS}
-\caption{Complete set of MT CSCs (preliminary)\label{fig:mtcscs}}
-\end{center}
-\end{figure}
+as the script queue, scheduler, environment awareness system, etc (see Fig.~\ref{fig:arc}).
 
 \subsection{SalObj - Python and scripting }\label{sect:salobj}
 
